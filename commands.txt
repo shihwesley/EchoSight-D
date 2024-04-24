@@ -1,0 +1,31 @@
+docker build --no-cache -t us-south1-docker.pkg.dev/cmpe257-376421/echosight/echosightfastapimp3:latest .
+
+docker buildx build --platform linux/amd64,linux/arm64 -t us-south1-docker.pkg.dev/cmpe257-376421/echosight/pf:trying --no-cache --push .
+
+docker push us-south1-docker.pkg.dev/cmpe257-376421/echosight/echosightfastapimp2:latest
+
+docker run --env-file .env -e PORT=8080 -p 8080:8080 us-south1-docker.pkg.dev/cmpe257-376421/echosight/echosightfastapimp3:latest
+
+docker inspect us-south1-docker.pkg.dev/cmpe257-376421/echosight/echosightfastapi:latestg
+
+gcloud run deploy echosightgcr \
+    --image=us-south1-docker.pkg.dev/cmpe257-376421/echosight/echosightfastapimp2:latest
+    --region=us-south-1
+
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -q) -f
+
+docker buildx create --name mybuilder --use
+
+docker build --no-cache -t processframes:latest .
+docker push processframes:latest
+docker run --env-file .env -e PORT=8080 -p 8080:8080 pf:trying
+
+gcloud run deploy echosightgcr2 --image=pf:trying --region=us-south-1
+
+
+gcloud auth login
+gcloud auth configure-docker
+docker buildx build --platform linux/amd64,linux/arm64 -t us-south1-docker.pkg.dev/cmpe257-376421/echosight/pf:trying --no-cache --push .
+gcloud run deploy echosightgcr2 --image=us-south1-docker.pkg.dev/cmpe257-376421/echosight/pf:trying
